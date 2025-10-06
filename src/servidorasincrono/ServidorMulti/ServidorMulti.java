@@ -8,19 +8,17 @@ import servidorasincrono.ServidorMulti.UnCliente;
 
 public class ServidorMulti {
     static HashMap<String,UnCliente> clientes = new HashMap<>();
+    static int contador;
     public static void main(String[] args) throws IOException {
         ServerSocket servidorSocket = new ServerSocket(8080);
-        int contador = 0;
-        String cadenita = "0";
-        int algo1 = Integer.valueOf(cadenita);
-        int algo2 = Integer.parseInt(cadenita);
+            contador = 0;
         while (true) {            
             Socket s = servidorSocket.accept();
             UnCliente unCliente = new UnCliente(s);
             Thread hilo = new Thread(unCliente);
             clientes.put(Integer.toString(contador), unCliente);
             hilo.start();
-            
+            System.out.println("Cliente: "+contador);
             contador++;
         }
         
