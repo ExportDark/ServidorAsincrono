@@ -8,8 +8,8 @@
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ClienteMulti/ClienteMulti.java</file>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ClienteMulti/Cliente2.java</file>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ClienteMulti/Cliente3.java</file>
-            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Usuario.java</file>
-            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Datos/Conexion.java</file>
+            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Dominio/Usuario.java</file>
+            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Datos/UsuarioDao.java</file>
         </group>
     </open-files>
 </project-private>

@@ -1,5 +1,8 @@
 package servidorasincrono.ServidorMulti;
 
+import Datos.UsuarioDao;
+import Dominio.Usuario;
+import com.sun.source.tree.ContinueTree;
 import java.io.BufferedReader;
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -9,7 +12,6 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class UnCliente implements Runnable {
 
@@ -19,27 +21,34 @@ public class UnCliente implements Runnable {
     final BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
     final DataInputStream entrada;
     String id;
+    UsuarioDao ud = new UsuarioDao();
 
     public UnCliente(Socket s, String id) throws IOException {
         this.salida = new DataOutputStream(s.getOutputStream());
         this.entrada = new DataInputStream(s.getInputStream());
         this.id = id;
-        sesionInvitado = true;
+        sesionInvitado = false;
     }
 
-    public boolean iniciarSesion() throws IOException {
+    public String pedirCredenciales() throws IOException {
         UnCliente cliente = ServidorMulti.clientes.get(id);
-        cliente.salida.writeUTF("Usr: \n");
+        cliente.salida.writeUTF("Usr: ");
         String usr = entrada.readUTF();
-        cliente.salida.writeUTF("pws: \n");
+        cliente.salida.writeUTF("pws: ");
         String psw = entrada.readUTF();
-        if (usr.equals("admin") && psw.equals("admin")) {//buscar en base de datos etc
-            id = usr;
-            mensajesPrueba = 10000;
-            return false;
+        return usr + " " + psw;
+    }
 
-        }
-        return true;
+    public boolean validarCredenciales(String usr, String psw) {
+        return usr.length() > 8 && psw.length() > 8 && usr.matches("^[a-zA-Z0-9_]+$") && psw.matches("^[a-zA-Z0-9_]+$");
+    }
+
+    public boolean registrarse(String usr, String psw) throws IOException {
+        return ud.registrarUsuario(new Usuario(usr, psw));
+    }
+
+    public boolean iniciarSesion(String usr, String psw) throws IOException {
+        return ud.iniciarSesion(new Usuario(usr, psw));
     }
 
     public String getQuienes(String mensaje) {
@@ -73,37 +82,65 @@ public class UnCliente implements Runnable {
         mensajesPrueba--;
     }
 
-    @Override
-    public void run() {
+    public void menuBienvenida() {
         UnCliente cliente = ServidorMulti.clientes.get(id);
         String opcion;
-
         try {
 
             while (true) {
-                cliente.salida.writeUTF("Iniciar Sesion\n1.si\n2.no\n");
+                cliente.salida.writeUTF("===Aplicacion de Mensjes===\n1.Iniciar Sesion\n2.Registrarse\n3.Modo Invitado\n");
                 opcion = entrada.readUTF();
-                if (opcion.toLowerCase().equals("si")) {
-                    sesionInvitado = iniciarSesion();
+                if (opcion.equals("1")) {
+                    String partes[] = pedirCredenciales().split(" ");
+
+                    if (validarCredenciales(partes[0], partes[1])) {
+                        sesionInvitado = !iniciarSesion(partes[0], partes[1]);
+                        break;
+                    }
                 }
-                if (opcion.toLowerCase().equals("no")) {
-                    break;
+                if (opcion.equals("2")) {
+                    String partes[] = pedirCredenciales().split(" ");
+                    cliente.salida.writeUTF(partes[0] + " " + partes[1]);
+                    cliente.salida.writeUTF("validacion: " + validarCredenciales(partes[0], partes[1]));
+                    if (validarCredenciales(partes[0], partes[1])) {
+                        sesionInvitado = !registrarse(partes[0], partes[1]);
+                        break;
+                    }
+                }
+                if (opcion.equals("3")) {
+                    cliente.salida.writeUTF("S I "+sesionInvitado);
+                    if (sesionInvitado) {
+                        continue;
+                        //no hace nada.jpg
+                    } else {
+                        sesionInvitado = true;
+                        break;
+                    }
+
                 }
             }
         } catch (IOException ex) {
             System.getLogger(UnCliente.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
+    }
 
+    @Override
+    public void run() {
+        menuBienvenida();
         String mensaje;
-
         while (true) {
-
+            UnCliente cliente;
+            cliente = ServidorMulti.clientes.get(id);
             try {//unicast o multicast
-                cliente = ServidorMulti.clientes.get(id);
-                cliente.salida.writeUTF("Mensaje restantes: " + mensajesPrueba);
+                if (sesionInvitado) {
+                    cliente.salida.writeUTF("Mensaje restantes: " + mensajesPrueba);
+                    if (mensajesPrueba == 0) {
+                        cliente.salida.writeUTF("prueba agotada...!\n");
+                        menuBienvenida();
+                    }
+                }
                 mensaje = entrada.readUTF();
                 if (mensaje.startsWith("@") && (mensajesPrueba > 0 || !sesionInvitado)) {
-                    cliente.salida.writeUTF("en UM...");
                     String[] partes = mensaje.split(" ");
                     enviarMensajeUM(getQuienes(partes[0]), partes[1]);
                     cliente.salida.writeUTF("mensaje enviado a : " + getQuienes(partes[0]));
@@ -112,18 +149,6 @@ public class UnCliente implements Runnable {
                 //broadcast
                 cliente.salida.writeUTF("en broadcast...");
                 enviarMensajeB(mensaje);
-
-                if (sesionInvitado) {
-                    cliente = ServidorMulti.clientes.get(id);
-                    if (mensajesPrueba == 0) {
-                        cliente.salida.writeUTF("prueba agotada, por favor inicie sesion...!\n");
-                        sesionInvitado = iniciarSesion();
-                        if (sesionInvitado) {
-                            cliente.salida.writeUTF("credenciales incorrectas...\n");
-                        }
-                    }
-
-                }
 
             } catch (Exception ex) {
             }
