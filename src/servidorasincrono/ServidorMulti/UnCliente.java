@@ -1,6 +1,8 @@
 package servidorasincrono.ServidorMulti;
 
+import Datos.BloqueoDao;
 import Datos.UsuarioDao;
+import Dominio.Bloqueo;
 import Dominio.Usuario;
 import com.sun.source.tree.ContinueTree;
 import java.io.BufferedReader;
@@ -36,19 +38,18 @@ public class UnCliente implements Runnable {
         String usr = entrada.readUTF();
         cliente.salida.writeUTF("pws: ");
         String psw = entrada.readUTF();
+        if (usr.startsWith(" ")||psw.startsWith(" ")||usr.isBlank()||psw.isBlank()) {//empieza con espacio o esta vacio
+            return "vacio vacio";
+        }
         return usr + " " + psw;
     }
 
     public boolean validarCredenciales(String usr, String psw) {
-        return usr.length() > 8 && psw.length() > 8 && usr.matches("^[a-zA-Z0-9_]+$") && psw.matches("^[a-zA-Z0-9_]+$");
+        return usr.length() >= 3 && psw.length() >= 5 && usr.matches("^[a-zA-Z0-9_]+$") && psw.matches("^[a-zA-Z0-9_]+$");
     }
 
     public boolean registrarse(String usr, String psw) throws IOException {
         return ud.registrarUsuario(new Usuario(usr, psw));
-    }
-
-    public boolean iniciarSesion(String usr, String psw) throws IOException {
-        return ud.iniciarSesion(new Usuario(usr, psw));
     }
 
     public String getQuienes(String mensaje) {
@@ -85,39 +86,47 @@ public class UnCliente implements Runnable {
     public void menuBienvenida() {
         UnCliente cliente = ServidorMulti.clientes.get(id);
         String opcion;
+        String partes[];
         try {
 
             while (true) {
                 cliente.salida.writeUTF("===Aplicacion de Mensjes===\n1.Iniciar Sesion\n2.Registrarse\n3.Modo Invitado\n");
                 opcion = entrada.readUTF();
                 if (opcion.equals("1")) {
-                    String partes[] = pedirCredenciales().split(" ");
-
+                        partes = pedirCredenciales().split(" ");
+                        cliente.salida.writeUTF("Credenciales: "+partes[0]+"_"+partes[1]);
                     if (validarCredenciales(partes[0], partes[1])) {
-                        sesionInvitado = !iniciarSesion(partes[0], partes[1]);
+                        sesionInvitado = !ud.iniciarSesion(new Usuario(partes[0], partes[1]));
+                        ServidorMulti.cambiarIdCliente(id, partes[0]);
+                        cliente.salida.writeUTF("sesion invitado: "+sesionInvitado);
+                        cliente.salida.writeUTF("/b {user} -> para bloquear un usuario");
                         break;
                     }
                 }
                 if (opcion.equals("2")) {
-                    String partes[] = pedirCredenciales().split(" ");
+                        partes = pedirCredenciales().split(" ");
                     cliente.salida.writeUTF(partes[0] + " " + partes[1]);
                     cliente.salida.writeUTF("validacion: " + validarCredenciales(partes[0], partes[1]));
                     if (validarCredenciales(partes[0], partes[1])) {
                         sesionInvitado = !registrarse(partes[0], partes[1]);
+                        id = partes[0];
+                        cliente.salida.writeUTF("/b {user} -> para bloquear un usuario");
                         break;
                     }
                 }
                 if (opcion.equals("3")) {
-                    cliente.salida.writeUTF("S I "+sesionInvitado);
+                    cliente.salida.writeUTF("S I " + sesionInvitado);
                     if (sesionInvitado) {
                         continue;
                         //no hace nada.jpg
                     } else {
                         sesionInvitado = true;
+                        cliente.salida.writeUTF("/b {user} -> para bloquear un usuario");
                         break;
                     }
 
                 }
+                cliente.salida.writeUTF("bucle infinito D:");
             }
         } catch (IOException ex) {
             System.getLogger(UnCliente.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
@@ -128,10 +137,11 @@ public class UnCliente implements Runnable {
     public void run() {
         menuBienvenida();
         String mensaje;
+        UnCliente cliente = ServidorMulti.clientes.get(id);
+        String partes[];
         while (true) {
-            UnCliente cliente;
-            cliente = ServidorMulti.clientes.get(id);
             try {//unicast o multicast
+                cliente.salida.writeUTF("id: "+id);
                 if (sesionInvitado) {
                     cliente.salida.writeUTF("Mensaje restantes: " + mensajesPrueba);
                     if (mensajesPrueba == 0) {
@@ -140,8 +150,22 @@ public class UnCliente implements Runnable {
                     }
                 }
                 mensaje = entrada.readUTF();
+                //aqui para bloquear gente ↓
+                    partes = mensaje.split(" ");
+                if (partes[0].equals("/b")) {
+                    BloqueoDao x = new BloqueoDao();
+                    Bloqueo b = new Bloqueo(id, partes[1]);
+                    if (ud.verificarExiste(partes[1]) != null && !x.estaBloqueado(b)) {
+                        x.bloquear(b);
+                        cliente.salida.writeUTF("usuario bloqueado...\n");
+                        continue;
+                    }if (x.estaBloqueado(b)) {
+                        cliente.salida.writeUTF("usuario ya estaba bloqueado...\n");
+                    }
+                      cliente.salida.writeUTF("usuario no encontrado...\n");
+                      continue;
+                }
                 if (mensaje.startsWith("@") && (mensajesPrueba > 0 || !sesionInvitado)) {
-                    String[] partes = mensaje.split(" ");
                     enviarMensajeUM(getQuienes(partes[0]), partes[1]);
                     cliente.salida.writeUTF("mensaje enviado a : " + getQuienes(partes[0]));
                     continue;

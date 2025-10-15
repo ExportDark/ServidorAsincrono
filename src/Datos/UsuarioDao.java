@@ -15,7 +15,7 @@ public class UsuarioDao {
     List<Usuario> usuarios;
 
     public boolean registrarUsuario(Usuario x) {
-        if (verificarExiste(x) == null) {
+        if (verificarExiste(x.getUsername()) == null) {
             insertar(x);
             return true;
         }
@@ -24,17 +24,17 @@ public class UsuarioDao {
     }
 
     public boolean iniciarSesion(Usuario x) {
-        Usuario buscar = verificarExiste(x);
+        Usuario buscar = verificarExiste(x.getUsername());
         if (buscar != null && x.getPassword().equals(buscar.getPassword())) {
             return true;
         }
         return false;
     }
-
-    public Usuario verificarExiste(Usuario x) {
+  
+    public Usuario verificarExiste(String usr) {
         usuarios = listar();
         for (Usuario usuario : usuarios) {
-            if (x.getUsername().equals(usuario.getUsername())) {
+            if (usr.equals(usuario.getUsername())) {
                 return usuario;
             }
         }
