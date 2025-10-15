@@ -9,12 +9,12 @@ import java.util.HashMap;
 import servidorasincrono.ServidorMulti.UnCliente;
 
 public class ServidorMulti {
-    static HashMap<String,UnCliente> clientes = new HashMap<>();
+    public static HashMap<String,UnCliente> clientes = new HashMap<>();
     static int contador;
     public static synchronized void cambiarIdCliente(String idAntiguo, String idNuevo) {
     UnCliente cliente = clientes.remove(idAntiguo);
     if (cliente != null) {
-        cliente.id = idNuevo;
+        cliente.setId(idNuevo);
         clientes.put(idNuevo, cliente);
         System.out.println("Cliente " + idAntiguo + " ahora es " + idNuevo);
     }
