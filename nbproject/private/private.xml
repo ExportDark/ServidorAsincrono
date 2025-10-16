@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>src/servidorasincrono/ServidorMulti/UnCliente.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>48</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ServidorMulti/UnCliente.java</file>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ServidorMulti/ServidorMulti.java</file>
+            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Servicio/Sesion.java</file>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ClienteMulti/ClienteMulti.java</file>
-            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ClienteMulti/Cliente2.java</file>
-            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Dominio/Bloqueo.java</file>
+            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Servicio/Mensaje.java</file>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Datos/BloqueoDao.java</file>
             <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Datos/UsuarioDao.java</file>
+            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/servidorasincrono/ClienteMulti/Cliente2.java</file>
+            <file>file:/C:/Users/expor/Documents/NetBeansProjects/ServidorAsincrono/src/Datos/Conexion.java</file>
         </group>
     </open-files>
 </project-private>

@@ -11,11 +11,10 @@ public class UsuarioDao {
     private static final String SQL_INSERT = "INSERT INTO usuario(username, password) VALUES (?, ?)";
     private static final String SQL_UPDATE = "UPDATE usuario SET password = ? WHERE username = ?";
     private static final String SQL_DELETE = "DELETE FROM usuario WHERE username = ?";
-    private static final String SQL_LOGIN = "SELECT * FROM usuario WHERE username = ? AND password = ?";
     List<Usuario> usuarios;
 
     public boolean registrarUsuario(Usuario x) {
-        if (verificarExiste(x.getUsername()) == null) {
+        if (existeUsuario(x.getUsername()) == null) {
             insertar(x);
             return true;
         }
@@ -24,14 +23,14 @@ public class UsuarioDao {
     }
 
     public boolean iniciarSesion(Usuario x) {
-        Usuario buscar = verificarExiste(x.getUsername());
+        Usuario buscar = existeUsuario(x.getUsername());
         if (buscar != null && x.getPassword().equals(buscar.getPassword())) {
             return true;
         }
         return false;
     }
   
-    public Usuario verificarExiste(String usr) {
+    public Usuario existeUsuario(String usr) {
         usuarios = listar();
         for (Usuario usuario : usuarios) {
             if (usr.equals(usuario.getUsername())) {

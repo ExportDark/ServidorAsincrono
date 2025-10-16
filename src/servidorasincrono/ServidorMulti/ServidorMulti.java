@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import servidorasincrono.ServidorMulti.UnCliente;
 
+
 public class ServidorMulti {
     public static HashMap<String,UnCliente> clientes = new HashMap<>();
     static int contador;
@@ -19,6 +20,10 @@ public class ServidorMulti {
         System.out.println("Cliente " + idAntiguo + " ahora es " + idNuevo);
     }
 }
+    public static synchronized void eliminarIdCliente(String id) {
+        clientes.remove(id);
+    }
+
 
     public static void main(String[] args) throws IOException {
         ServerSocket servidorSocket = new ServerSocket(8080);

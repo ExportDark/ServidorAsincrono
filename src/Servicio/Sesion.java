@@ -12,16 +12,23 @@ public class Sesion {
     private final UsuarioDao ud = new UsuarioDao();
     private boolean sesionInvitado = true;
     private int mensajesPrueba = 3;
+    private boolean menuInicio = true;
 
     public Sesion(UnCliente cliente) {
         this.cliente = cliente;
     }
 
+    public Sesion() {
+        this.cliente = null;
+    }
+    public void mostrarComandos() throws IOException{
+        cliente.salida().writeUTF("/b {usr} -> bloquear un usuario\n@{usr/s} -> para enviar UM\n/exit -> para salir de la app");
+    }
     public void mostrarMenu() throws IOException {
-        while (true) {
+        while (menuInicio) {
             cliente.salida().writeUTF("""
-                === Aplicación de Mensajes ===
-                1. Iniciar Sesión
+                === Aplicacion de Mensajes ===
+                1. Iniciar Sesion
                 2. Registrarse
                 3. Modo Invitado
                 """);
@@ -29,14 +36,28 @@ public class Sesion {
             String opcion = cliente.entrada().readUTF();
             switch (opcion) {
                 case "1":
-                    cliente.salida().writeUTF(iniciarSesion());
+                    String mensajito = iniciarSesion();
+                    cliente.salida().writeUTF(mensajito);
+                    if (mensajito.equals("sesion iniciada")) {
+                        mostrarComandos();
+                        sesionInvitado = false;
+                        menuInicio = false;
+                    }
                     break;
                 case "2":
-                    cliente.salida().writeUTF(registrarse());
+                    mensajito = registrarse();
+                    cliente.salida().writeUTF(mensajito);
+                    if (mensajito.equals("registro exitoso")) {
+                        mostrarComandos();
+                        sesionInvitado = false;
+                        menuInicio = false;
+                    }
                     break;
                 case "3":
                     sesionInvitado = true;
-                    cliente.salida().writeUTF("Entraste en modo invitado.");
+                    cliente.salida().writeUTF("entraste en modo invitado.");
+                    mostrarComandos();
+                    menuInicio = false;
                     break;
                 default:
                     cliente.salida().writeUTF("opcion no valida.");
@@ -49,24 +70,31 @@ public class Sesion {
         if (validarCredenciales(cred[0], cred[1])) {
             if (ud.iniciarSesion(new Usuario(cred[0], cred[1]))) {
                 ServidorMulti.cambiarIdCliente(cliente.getId(), cred[0]);
-                return "Sesion Iniciada\n";
+                return "sesion iniciada";
             }
-            return "usr o psw Incorrectos\n";
+            return "usr o psw incorrectos";
 
         }
-        return "Formato No Valido\n";
+        return "formato No valido";
     }
 
     private String registrarse() throws IOException {
         String cred[] = pedirCredenciales().split(" ");
         if (validarCredenciales(cred[0], cred[1])) {
             if (ud.registrarUsuario(new Usuario(cred[0], cred[1]))) {
-                return "Registro Exitoso!\n";
+                ServidorMulti.cambiarIdCliente(cliente.getId(), cred[0]);
+                return "registro exitoso";
             }
-            return "Usuario Ya Registrado\n";
+            return "usuario ya registrado";
         }
-        return "Formato No Valido\n";
+        return "formato no valido\n";
 
+    }
+
+    public void cerrarSesion() throws IOException {
+        cliente.salida().writeUTF("cerro sesion: "+cliente.getId());
+        
+        menuInicio = true;
     }
 
     private boolean validarCredenciales(String usr, String psw) {
@@ -87,6 +115,9 @@ public class Sesion {
     public boolean esInvitado() {
         return this.sesionInvitado;
     }
+    public void setInvitado(boolean invitado){
+        this.sesionInvitado = invitado;
+    }
 
     public int getMensajesRestantes() {
         return this.mensajesPrueba;
@@ -94,6 +125,10 @@ public class Sesion {
 
     public void consumirMensaje() {
         this.mensajesPrueba--;
+    }
+
+    public void setMenuInicio(boolean menuInicio) {
+        this.menuInicio = menuInicio;
     }
 
 }
