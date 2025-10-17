@@ -3,7 +3,7 @@ package servidorasincrono.ClienteMulti;
 import java.io.IOException;
 import java.net.Socket;
 
-public class Cliente2 {
+public class Cliente3 {
 
     public static void main(String[] args) throws IOException {
         Socket s = new Socket("localhost", 8080);

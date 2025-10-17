@@ -1,5 +1,12 @@
 package servidorasincrono.ServidorMulti;
 
+import Datos.BloqueoDao;
+import Datos.UsuarioDao;
+import Dominio.Bloqueo;
+import Dominio.Usuario;
+import Servicio.Mensaje;
+import Servicio.Sesion;
+import com.sun.source.tree.ContinueTree;
 import java.io.BufferedReader;
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -9,44 +16,54 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class UnCliente implements Runnable {
 
-    final DataOutputStream salida;
-    final BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
-    final DataInputStream entrada;
-    final String id;
+    private final Socket socket;
+    private final DataInputStream entrada;
+    private final DataOutputStream salida;
+    private String id;
+    private final Sesion sesion;
+    private final Mensaje mensaje;
+    UsuarioDao ud = new UsuarioDao();
 
-    public UnCliente(Socket s,String id) throws IOException {
-        this.salida = new DataOutputStream(s.getOutputStream());
-        this.entrada = new DataInputStream(s.getInputStream());
+    public UnCliente(Socket socket, String id) throws IOException {
+        this.socket = socket;
+        this.salida = new DataOutputStream(socket.getOutputStream());
+        this.entrada = new DataInputStream(socket.getInputStream());
+        this.id = id;
+        sesion = new Sesion(this);
+        mensaje = new Mensaje(this, sesion);
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 
+    public String getId() {
+        return this.id;
+    }
+
+    public DataInputStream entrada() {
+        return this.entrada;
+    }
+
+    public DataOutputStream salida() {
+        return this.salida;
+    }
 
     @Override
     public void run() {
-        String mensaje;
-        while (true) {            
-            try {
-                mensaje = entrada.readUTF();
-                
-                if (mensaje.startsWith("@")) {
-                    String[] partes= mensaje.split(" ");
-                    String aQuien = partes[0].substring(1);
-                    UnCliente cliente = ServidorMulti.clientes.get(aQuien);
-                    cliente.salida.writeUTF(id+" "+mensaje);
-                }else{
-                    for (UnCliente cliente : ServidorMulti.clientes.values()) {
-                        if (cliente.id!=id) {
-                            cliente.salida.writeUTF(id+" "+mensaje);
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-            }                               
+        UnCliente cliente = ServidorMulti.clientes.get(id);
+        try {
+            while (true) {
+                sesion.mostrarMenu();
+                String mensajito = entrada().readUTF();
+                this.mensaje.procesarMensaje(mensajito);
+            }
+
+        } catch (IOException ex) {
+            System.getLogger(UnCliente.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }
-
 }

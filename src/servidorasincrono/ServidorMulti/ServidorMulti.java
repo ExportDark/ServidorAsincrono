@@ -1,14 +1,30 @@
 package servidorasincrono.ServidorMulti;
 
+import Datos.UsuarioDao;
+import com.mysql.cj.protocol.x.Notice;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import servidorasincrono.ServidorMulti.UnCliente;
 
+
 public class ServidorMulti {
-    static HashMap<String,UnCliente> clientes = new HashMap<>();
+    public static HashMap<String,UnCliente> clientes = new HashMap<>();
     static int contador;
+    public static synchronized void cambiarIdCliente(String idAntiguo, String idNuevo) {
+    UnCliente cliente = clientes.remove(idAntiguo);
+    if (cliente != null) {
+        cliente.setId(idNuevo);
+        clientes.put(idNuevo, cliente);
+        System.out.println("Cliente " + idAntiguo + " ahora es " + idNuevo);
+    }
+}
+    public static synchronized void eliminarIdCliente(String id) {
+        clientes.remove(id);
+    }
+
+
     public static void main(String[] args) throws IOException {
         ServerSocket servidorSocket = new ServerSocket(8080);
             contador = 0;
@@ -21,6 +37,9 @@ public class ServidorMulti {
             System.out.println("Cliente: "+contador);
             contador++;
         }
+        
+        
+        
         
     }
     
