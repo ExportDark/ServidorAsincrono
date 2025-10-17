@@ -22,7 +22,7 @@ public class Sesion {
         this.cliente = null;
     }
     public void mostrarComandos() throws IOException{
-        cliente.salida().writeUTF("/b {usr} -> bloquear un usuario\n@{usr/s} -> para enviar UM\n/exit -> para salir de la app");
+        cliente.salida().writeUTF("/b {usr} -> bloquear un usuario\n/ub -> desbloquear usuarios\n/lb -> listar bloqueados\n@{usr/s} -> para enviar UM\n/exit -> para salir de la app");
     }
     public void mostrarMenu() throws IOException {
         while (menuInicio) {

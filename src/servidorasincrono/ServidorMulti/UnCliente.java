@@ -65,22 +65,5 @@ public class UnCliente implements Runnable {
         } catch (IOException ex) {
             System.getLogger(UnCliente.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
-        String mensaje;
-
-        String partes[];
-        while (true) {
-            try {//unicast o multicast
-                cliente.salida.writeUTF("id: " + id);
-                if (sesionInvitado) {
-                    cliente.salida.writeUTF("Mensaje restantes: " + mensajesPrueba);
-                    if (mensajesPrueba == 0) {
-                        cliente.salida.writeUTF("prueba agotada...!\n");
-                        menuBienvenida();
-                    }
-                }
-
-            } catch (Exception ex) {
-            }
-        }
     }
 }
